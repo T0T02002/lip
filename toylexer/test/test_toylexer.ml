@@ -6,3 +6,5 @@ let%test "test_frequencies_1" =
 
 (* YOUR TESTS HERE *)
 frequency 3 [ID("x"); ASSIGN; ID("y"); SEQ; ID("x"); ASSIGN; ID("x"); PLUS; CONST("1")];;
+
+(* scopri come avviare i test *)
