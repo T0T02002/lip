@@ -1,3 +1,7 @@
+# non sono ancora riuscito a utilizzare docker in entrambi i dispositivi
+# aggiungi qui quando saprai spiegare il modo per farlo
+
+
 # nella cartella padre, serve per raggruppare i file modificati
 git add .
 
