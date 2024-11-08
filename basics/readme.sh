@@ -1,4 +1,4 @@
-# adder
+# adder (test passano sia con portatile che con fisso)
 
 # inizializza progetto
 cd lip/basics
