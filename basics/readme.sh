@@ -52,8 +52,18 @@ dune exec recognizer
  (preprocess (pps ppx_inline_test))
  (libraries recognizer)) # libreria 
 
- # esegui in /recognizer con
+# esegui in /recognizer con
 dune test
 
 ######################################################
 
+# tugofwar
+# creazione progetto con
+cd basics
+dune init project tugofwar
+
+# test in utop con
+cd tugofwar
+dune utop lib
+open Tugofwar;; # Tugofwar è il componente
+# puoi testare con i comandi ocaml
