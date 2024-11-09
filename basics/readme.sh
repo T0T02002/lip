@@ -67,3 +67,8 @@ cd tugofwar
 dune utop lib
 open Tugofwar;; # Tugofwar è il componente
 # puoi testare con i comandi ocaml
+
+# creato test per tugofwar
+dune test
+
+# per qualche motivo VSCODE mostra errori nel main di tugofwar, ignorali perché il progetto funziona
