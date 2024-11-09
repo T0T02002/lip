@@ -1,7 +1,6 @@
-open Recognizer
+open Recognizer 
     
 (* read one line from standard input, and output it to a string *)
-
 let read_line () =
   try Some(read_line())
   with End_of_file -> None
@@ -25,3 +24,4 @@ let () = match read_line () with
     Some s -> let l = belongsTo (explode s) in
     print_endline (string_of_list s l)
   | None -> print_endline "no winner"
+;;
