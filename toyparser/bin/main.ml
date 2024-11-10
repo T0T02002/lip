@@ -1,5 +1,5 @@
 open Toyparser.Main
-
+ 
 (* read line from standard input, and output it to a string *)
 
 let read_line () =

@@ -1,4 +1,4 @@
-# toylexer
+# toylexer (funzionante col fisso)
 
 # crea il progetto con
 cd lip
