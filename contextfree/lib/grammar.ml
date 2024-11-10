@@ -1,4 +1,4 @@
-open Types
+open Types 
 
 (** [can_step s] detects whether [s] contains non-terminal symbols.
 *)

@@ -72,3 +72,6 @@ open Tugofwar;; # Tugofwar è il componente
 dune test
 
 # per qualche motivo VSCODE mostra errori nel main di tugofwar, ignorali perché il progetto funziona
+# fixato con 
+cd /tugofwar
+dune build

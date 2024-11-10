@@ -45,3 +45,5 @@ let rec loop () =
 let _ =
   print_endline "Exit with Ctrl+C\nGenerating words...\n";
   loop ()
+
+;;

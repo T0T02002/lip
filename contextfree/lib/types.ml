@@ -1,4 +1,4 @@
-type symbol = A | B | S
+type symbol = A | B | S 
 
 type terminal = char
 type symbol_or_terminal = Symbol of symbol | Terminal of terminal
