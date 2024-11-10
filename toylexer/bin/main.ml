@@ -1,4 +1,4 @@
-open Toylexer.Main
+open Toylexer.Main 
 
 (* read line from standard input, and output it to a string *)
 
