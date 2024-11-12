@@ -13,8 +13,6 @@ let%test _ = parse "0x01 + 2" |> eval = Ok 3
 let%test _ = parse "0x01 + 0X01" |> eval = Ok 2
 let%test _ = parse "0xA + 0" |> eval = Ok 10
 
-(* TODO task 6*)
-
 (* Test di conferma *)
 let%test_unit "all tests passed" =
   print_endline "Tutti i test sono passati con successo!"
