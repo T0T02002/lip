@@ -1,0 +1,3 @@
+(library
+(libraries ANSITerminal)
+ (name life))
