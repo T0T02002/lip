@@ -36,6 +36,7 @@ let%test "zero_one_same_3" = derive same_amount [ 1;3;3;0 ] |> to_string = "0011
 let%test "zero_one_same_4" = derive same_amount [ 4;4;3;4;0 ] |> to_string = "10100110"
 let%test "zero_one_same_5" = derive same_amount [ 5;5;3;4;0 ] |> to_string = "00011011"
 let%test "zero_one_same_6" = derive same_amount [ 5;5;4;5;5;1;4;0 ] |> to_string = "0010000011101111"
+let%test "zero_one_same_7" = derive same_amount [ 6;6;4;4;3;0 ] |> to_string = "1110100100"
 
 (* Test di conferma *)
 let%test_unit "all tests passed" =
