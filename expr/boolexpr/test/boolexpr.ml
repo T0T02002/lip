@@ -26,3 +26,7 @@ let%test _ = count_trace_elements task5_string <= 10;;
 (* Task 6 *)
 let%test _ = parse "true && false" |> eval = false;; (* if a then b else false *)
 let%test _ = parse "true || false" |> eval = true;;  (* if a then true else b  *)
+
+(* EOF *)
+let%test_unit _ =
+  print_endline "OK TEST"

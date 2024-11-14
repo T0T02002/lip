@@ -1,4 +1,4 @@
-open AndboolexprLib.Ast
+(* open AndboolexprLib.Ast *)
 open AndboolexprLib.Main
 
 (**********************************************************************
@@ -52,7 +52,7 @@ let%test "test_bigstep18" = test_bigstep "if true then false else false or true"
 let rec last = function
     [] -> failwith "last on empty list"
   | [x] -> x
-  | _::l -> last l
+  | _::l -> last l 
 
 let eval_smallstep e = match last (trace e) with
     True -> Some true
@@ -97,3 +97,8 @@ let%test "test_smallstep16" = test_smallstep "true or false and false" (Some tru
 let%test "test_smallstep17" = test_smallstep "if true then true else false and false" (Some true)
 
 let%test "test_smallstep18" = test_smallstep "if true then false else false or true" (Some false)
+
+
+(* EOF *)
+let%test_unit _ =
+  print_endline "OK TEST"
