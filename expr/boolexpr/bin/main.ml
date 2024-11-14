@@ -1,4 +1,4 @@
-open BoolexprLib.Main
+open BoolexprLib.Main 
   
 (* read file, and output it to a string *)
 
@@ -33,7 +33,7 @@ match Array.length(Sys.argv) with
 (* eval / read input from stdin *) 
   1 -> (match read_line() with
     Some s when s<>"" -> s |> parse |> eval |> print_bool
-  | _ -> print_newline())
+  | _ -> print_newline()) 
 (* trace / read input from stdin *)      
 | 2 when Sys.argv.(1) = "trace" -> (match read_line() with
     Some s when s<>"" -> s |> parse |> trace |> print_trace
@@ -45,6 +45,6 @@ match Array.length(Sys.argv) with
 (* trace / read input from stdin *)      
 | 3 when Sys.argv.(1) = "trace" -> (match read_file Sys.argv.(2) with
       "" -> print_newline()
-    | s -> s |> parse |> trace |> print_trace)
+    | s -> s |> parse |> trace |> print_trace) 
 (* wrong usage *)      
 | _ -> failwith "Usage: dune exec andboolexpr [trace] [file]"

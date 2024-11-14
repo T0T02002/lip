@@ -1,7 +1,7 @@
 open BoolexprLib.Main
 
 
-let%test _ = parse "true" = True;;
+let%test _ = parse "true" = True;; 
 let%test _ = parse "false" = False;;
 let%test _ = parse "if true then false else true" = If (True, False, True);;
 
