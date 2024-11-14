@@ -8,3 +8,9 @@ dune init proj boolexpr
 #file. You must enable it using (using menhir 3.0) in your dune-project file.
 
 dune build #se compila hai risolto la task 1
+
+# per testare eval e trace
+dune utop lib
+open BoolexprLib.Main;;
+open BoolexprLib.Ast;;
+

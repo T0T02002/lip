@@ -1,11 +1,13 @@
 open Ast
 
+(* Trasforma una boolexpr in una stringa letterale *)
 let rec string_of_boolexpr = function
     True -> "True"
   | False -> "False"
   | If(e0,e1,e2) -> "If(" ^ (string_of_boolexpr e0) ^ "," ^ (string_of_boolexpr e1) ^ "," ^ (string_of_boolexpr e2) ^ ")"
 
 
+(* Esegue le regole di parsing su una stringa *)
 let parse (s : string) : boolExpr =
   let lexbuf = Lexing.from_string s in
   let ast = Parser.prog Lexer.read lexbuf in
@@ -29,7 +31,11 @@ let rec trace e = try
 let rec eval = function
     True -> true
   | False -> false
-  | If(e0,e1,e2) -> 
-      if (eval e0) then (eval e1) else (eval e2) 
-  ;;
+  | If(e0,e1,e2) -> if (eval e0) then (eval e1) else (eval e2) 
  
+
+(* Prende in input una stringa, ne fa il parsing, le rende una boolExpr con trace e poi ne conta gli elementi*)
+let count_trace_elements str  =
+  let traced = parse str |> trace  in
+  List.length traced
+;;
