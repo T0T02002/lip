@@ -17,7 +17,7 @@ open Ast
 (* left si usa per indicare la priorità; va dal basso all'alto *)
 %left OR 
 %left AND
-%left NOT
+%right NOT
 (*) capire perché:
     Warning: one state has shift/reduce conflicts.
     Warning: 2 shift/reduce conflicts were arbitrarily resolved. *)
