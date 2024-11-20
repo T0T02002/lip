@@ -1,3 +1,4 @@
+(* Espressioni *)
 type expr =
     True
   | False 
@@ -9,4 +10,9 @@ type expr =
   | Zero
   | Succ of expr
   | Pred of expr
-  | IsZero of expr
+  | IsZero of expr 
+
+(* Tag union: tipo (Bool) valore (true) *)
+type exprval = 
+    Bool of bool 
+  | Nat of int

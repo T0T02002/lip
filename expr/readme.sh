@@ -84,3 +84,7 @@ dune test
 # apri lib/dune
 # cambia la riga 2 in  (name arithexprLib))
 # (questo è perché il make non funziona)
+
+# cambia e commenta open ArithexprLib.Ast  e open ArithexprLib.Main a cazzo di cane finché non va
+
+# Il test smallstep6 mi ha dato parecchi problemi, ha funzionato solo cambiato la logica dell'or e dell'and in parser

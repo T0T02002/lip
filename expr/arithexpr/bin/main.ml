@@ -23,7 +23,7 @@ let print_val e = print_string (string_of_val e); print_newline();;
 
 let rec print_trace = function
     [] -> print_newline()
-  | [x] -> print_endline (string_of_expr x)
+  | [x] -> print_endline (string_of_expr x) 
   | x::l -> print_endline (string_of_expr x); print_string " -> " ; print_trace l
 ;;
 

@@ -1,5 +1,5 @@
-(* open ArithexprLib.Ast *)
-open ArithexprLib.Main
+open ArithexprLib.Ast 
+open ArithexprLib.Main 
 
 
 (**********************************************************************
@@ -39,7 +39,7 @@ let%test "test_bigstep11" = test_bigstep "pred pred succ 0" None
  Test small-step semantics
  **********************************************************************)
 
-(* last element of a list *) (*
+(* last element of a list *) 
 let rec last = function
     [] -> failwith "last on empty list"
   | [x] -> x
@@ -71,6 +71,7 @@ let%test "test_smallstep4" = test_smallstep "succ succ succ pred pred succ succ 
 
 let%test "test_smallstep5" = test_smallstep "iszero pred succ 0" (Some (Bool true))
 
+(* dava problemi grossi *)
 let%test "test_smallstep6" = test_smallstep "iszero pred succ 0 and not iszero succ pred succ 0" (Some (Bool true))
 
 let%test "test_smallstep7" = test_smallstep "iszero true" None
@@ -81,5 +82,9 @@ let%test "test_smallstep9" = test_smallstep "not 0" None
 
 let%test "test_smallstep10" = test_smallstep "pred 0" None
 
-let%test "test_smallstep11" = test_smallstep "pred pred succ 0" None *)
+let%test "test_smallstep11" = test_smallstep "pred pred succ 0" None 
+
+(* EOF *)
+let%test_unit _ =
+  print_endline "OK TEST"
 

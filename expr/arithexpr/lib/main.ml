@@ -1,7 +1,4 @@
 open Ast
- 
-(* Tag union: tipo (Bool) valore (true) *)
-type exprval = Bool of bool | Nat of int
 
 (* Trasforma una boolexpr in una stringa letterale *)
 let rec string_of_expr = function
@@ -17,11 +14,25 @@ let rec string_of_expr = function
   | Pred(e0) -> "pred "^(string_of_expr e0)
   | IsZero(e0) -> "iszero "^(string_of_expr e0)
 
+
+let string_of_val : exprval -> string = function
+  | Bool true -> "True"
+  | Bool false -> "False"
+  | Nat n -> string_of_int n
+
+
 (* Esegue le regole di parsing su una stringa *)
 let parse (s : string) : expr =  
   let lexbuf = Lexing.from_string s in
   let ast = Parser.prog Lexer.read lexbuf in
   ast
+
+
+(* Da true se l'espressione è o Zero o Succ, false in tutti gli altri casi *)  
+let rec is_nv = function 
+  Zero -> true 
+| Succ e1 ->is_nv e1 
+| _ -> false
 
 
 exception NoRuleApplies
@@ -37,6 +48,7 @@ let rec trace1 = function
   | Not(True) -> False
   | Not(e0) -> Not(trace1 e0)
 
+  (* TODO assicurati della correttezza di AND, OR, NOT *)
   | And(True,True) -> True
   | And(_,False)
   | And(False,_) -> False  (* qualsiasi espressione con uno dei due falso sarà falsa *)
@@ -47,8 +59,18 @@ let rec trace1 = function
   | Or(False,False) -> False
   | Or(e0,e1) -> Or(trace1 e0,e1) (* altrimenti riduce l'albero *)
 
+  | Succ e0 -> Succ (trace1 e0) 
+
+  | Pred (Succ e0) -> e0 
+  | Pred e0 -> Pred (trace1 e0) 
+
+  | IsZero Zero -> True
+  | IsZero (Succ _ ) ->  False
+  | IsZero e0 -> IsZero (trace1 e0)
+
   | _ -> raise NoRuleApplies
 
+  
 (* Rende una lista di boolxepr ogni trace *)
 let rec trace e = try
     let e' = trace1 e
