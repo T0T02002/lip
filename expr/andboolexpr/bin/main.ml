@@ -32,7 +32,7 @@ let rec print_trace = function
 match Array.length(Sys.argv) with
 (* eval / read input from stdin *) 
   1 -> (match read_line() with
-    Some s when s<>"" -> s |> parse |> eval |> print_bool
+    Some s when s<>"" -> s |> parse |> eval |> print_bool 
   | _ -> print_newline())
 (* trace / read input from stdin *)      
 | 2 when Sys.argv.(1) = "trace" -> (match read_line() with

@@ -51,3 +51,36 @@ dune test
 # non ho testato dune lib utop
 
 ####################################
+
+# arithexpr
+
+cd expr
+make arithexpr
+# output:
+#dune init proj arithexpr ; \
+#        cd arithexpr ; \
+#        echo '(using menhir 2.1)' >> dune-project ; \
+#        echo '\n(menhir (modules parser))\n\n(ocamllex lexer)' >> lib/dune ; \
+#        rm test/test_arithexpr.ml ; \
+#        echo "\
+#(library\n\
+# (name arithexprTest)\n\
+# (inline_tests)\n\
+# (preprocess (pps ppx_inline_test))\n\
+# (libraries arithexpr))" > test/dune
+#Entering directory '/home/toto/lip/expr/arithexpr'
+#Warning: File bin/main.ml was not created because it already exists
+#Success: initialized project component named arithexpr
+
+dune test
+# errore in test 
+# 1 | open ArithexprLib.Ast
+#         ^^^^^^^^^^^^^^^^
+#Error: Unbound module ArithexprLib
+#Hint: Did you mean Arithexpr?
+
+# apri test/dune
+# cambia la riga 5 in  (libraries arithexprLib)) 
+# apri lib/dune
+# cambia la riga 2 in  (name arithexprLib))
+# (questo è perché il make non funziona)
