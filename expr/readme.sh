@@ -88,3 +88,31 @@ dune test
 # cambia e commenta open ArithexprLib.Ast  e open ArithexprLib.Main a cazzo di cane finché non va
 
 # Il test smallstep6 mi ha dato parecchi problemi, ha funzionato solo cambiato la logica dell'or e dell'and in parser
+
+
+
+# sarithexpr
+cd expr
+make sarithexpr
+# output:
+#dune init proj sarithexpr ; \
+#        cd sarithexpr ; \
+#        sed -i 's/name sarithexpr/name sarithexprLib/' lib/dune ; \
+#        sed -i 's/libraries sarithexpr/libraries sarithexprLib/' bin/dune ; \
+#        echo '(using menhir 2.1)' >> dune-project ; \
+#        echo '\n(menhir (modules parser))\n\n(ocamllex lexer)' >> lib/dune ; \
+#        rm test/test_sarithexpr.ml ; \
+#        echo "\
+#(library\n\
+# (name sarithexprTest)\n\
+# (inline_tests)\n\
+# (preprocess (pps ppx_inline_test))\n\
+# (libraries sarithexprLib))" > test/dune
+#Entering directory '/home/t0t02002/lip/expr/sarithexpr'
+#Warning: File bin/main.ml was not created because it already exists
+#Success: initialized project component named sarithexpr
+
+# funziona solo rinominando una funzione in lib/main
+dune build
+# funziona solo importando il tipo exprtype nel file di test
+dune test

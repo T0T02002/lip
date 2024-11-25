@@ -1,7 +1,7 @@
 open SarithexprLib.Main
-  
-(* read file, and output it to a string *)
 
+
+(* read file, and output it to a string *)
 let read_file filename =
   let ch = open_in filename in
   let s = really_input_string ch (in_channel_length ch) in
@@ -9,26 +9,23 @@ let read_file filename =
 ;;
 
 (* read line from standard input, and output it to a string *)
-
 let read_line () =
   try Some(read_line())
   with End_of_file -> None
 ;;
 
 (* print a result *)
-
 let print_val e = print_string (string_of_val e); print_newline();;
 
 (* print a trace *)
-
-let rec print_trace = function
+let rec print_trace = function 
     [] -> print_newline()
   | [x] -> print_endline (string_of_expr x)
   | x::l -> print_endline (string_of_expr x); print_string " -> " ; print_trace l
 ;;
 
 let print_type e = try 
-    print_endline (string_of_type (typecheck e))
+    print_endline (string_of_type (typecheck e)) (* in origine era string_of_type *)
   with TypeError s -> print_endline s
 ;;
 
