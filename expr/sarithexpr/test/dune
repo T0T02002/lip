@@ -2,4 +2,4 @@
  (name sarithexprTest)
  (inline_tests)
  (preprocess (pps ppx_inline_test))
- (libraries sarithexprLib))
+ (libraries sarithexprLib qcheck))

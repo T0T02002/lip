@@ -33,7 +33,7 @@ let%test "test_type6" = test_type "iszero pred succ 0" (Some BoolT)
 
 let%test "test_type7" = test_type "iszero pred succ 0 and not iszero succ pred succ 0" (Some BoolT)
 
-let%test "test_type8" = test_type "pred 0" (Some NatT)
+let%test "test_type8" = test_type "pred 0" (Some NatT) (* ho scelto di non rendere NatT il predecessore di 0, quindi ci sta che dà errore *)
 
 let%test "test_type9" = test_type "pred pred succ 0" (Some NatT)
     
@@ -60,6 +60,6 @@ let%test "test_type19" = test_type "iszero 0 or succ 0" None
 let%test "test_type20" = test_type "succ 0 or iszero 0" None
 
        
-(* EOF *)
+(* EOF 
 let%test_unit _ =
-  print_endline "OK TEST"
+  print_endline "END TEST SARITH"*)

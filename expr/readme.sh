@@ -116,3 +116,11 @@ make sarithexpr
 dune build
 # funziona solo importando il tipo exprtype nel file di test
 dune test
+
+# installa qcheck
+cd lip
+opam install qcheck
+(libraries sarithexprLib qcheck)
+Y 
+
+# aggiungi la libreria qcheck al file dune di test

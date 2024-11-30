@@ -56,9 +56,12 @@ let rec typecheck = function
     | BoolT -> raise (TypeError ("succ(" ^ (string_of_expr e0) ^ ") has type Bool, but type Nat was expected")))
   
   | Pred(e0) -> (
-    match typecheck e0 with 
-    | NatT -> NatT
-    | BoolT -> raise (TypeError "error"))
+      match e0 with (* errore specifico per Pred(Zero) *)
+      | Zero -> raise (TypeError "Pred(Zero) is not valid") (* Non riduce dopo Zero *)
+      | _ -> (
+          match typecheck e0 with
+          | NatT -> NatT
+          | BoolT -> raise (TypeError ("pred(" ^ (string_of_expr e0) ^ ") has type Bool, but type Nat was expected"))))
 
   | IsZero(e0) -> (
     match typecheck e0 with 
@@ -113,6 +116,7 @@ let rec trace1 = function
 
   | Succ e0 -> Succ (trace1 e0) 
 
+  | Pred Zero -> raise NoRuleApplies (* Non riduce dopo Zero *)
   | Pred (Succ e0) -> e0 
   | Pred e0 -> Pred (trace1 e0) 
 
