@@ -1,5 +1,7 @@
+(* todo *)
 type ide = string
   
+(* Espressioni *)
 type expr =
   | True
   | False
@@ -14,6 +16,7 @@ type expr =
   | Eq of expr * expr
   | Leq of expr * expr
 
+(* todo *)
 type cmd =
   | Skip
   | Assign of string * expr
@@ -21,3 +24,4 @@ type cmd =
   | If of expr * cmd * cmd
   | While of expr * cmd
 
+ 
