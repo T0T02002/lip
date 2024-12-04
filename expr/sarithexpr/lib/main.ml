@@ -34,7 +34,7 @@ let rec typecheck = function
     match typecheck e0, typecheck e1, typecheck e2 with (* valuta i tipi e gli assegna un valore exprtype *)
     | NatT,_,_ -> raise (TypeError "error") (* se la condizione è NatT, esce*)
     | BoolT, typethen, typeelse ->  if typethen = typeelse then typethen (* se then e else hanno lo stesso tipo, allora il tipo è valido e si valuta la funzione in then *)
-                                    else raise (TypeError "error")) (* Errore se i tipi non coincidono *)
+                                    else raise (TypeError (string_of_expr e2 ^ " has type "^ string_of_type typeelse))) (* Errore se i tipi non coincidono *)
   
   | Not(e0) -> (
     match typecheck e0 with 

@@ -2,6 +2,9 @@ open SarithexprLib.Main
 
 (* aggiungi sta riga  per evitare errore di dune build, è il tipo definito in ast.ml *)
 type exprtype = BoolT | NatT 
+exception NoRuleApplies
+exception TypeError of string
+
 (* tipo per il test *)
 type wexprval = exprtype option
 
@@ -58,6 +61,9 @@ let%test "test_type18" = test_type "succ 0 and iszero 0" None
 let%test "test_type19" = test_type "iszero 0 or succ 0" None
 
 let%test "test_type20" = test_type "succ 0 or iszero 0" None
+
+let%test _ = "true" |> parse |> typecheck = BoolT
+
 
        
 (* EOF 

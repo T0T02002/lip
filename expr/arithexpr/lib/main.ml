@@ -11,12 +11,12 @@ let rec string_of_expr = function
 
   | Zero -> "0"
   | Succ(e0) -> "succ "^(string_of_expr e0)
-  | Pred(e0) -> "pred "^(string_of_expr e0)
+  | Pred(e0) -> "pred "^(string_of_expr e0) 
   | IsZero(e0) -> "iszero "^(string_of_expr e0)
 
 
 let string_of_val : exprval -> string = function
-  | Bool true -> "True"
+  | Bool true -> "True" 
   | Bool false -> "False"
   | Nat n -> string_of_int n
 
