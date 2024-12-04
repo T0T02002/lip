@@ -7,11 +7,10 @@ open WhileLib.Main
  parse test : (variable, term, expected result)
  **********************************************************************)
 
-let test_parse cmd exp_result =
-  cmd |> parse |> fun c -> c = exp_result
+let test_parse cmd exp_result = cmd |> parse |> fun c -> c = exp_result
+let foo cmd = cmd |> parse
 
-let%test "test_parse1" = test_parse
-    "x:=0" (Assign("x",Const(0)))
+let%test "test_parse1" = test_parse "x:=0" (Assign("x",Const(0)))
 
 let%test "test_parse2" = test_parse
     "x:=0; y:=x+1" (Seq(Assign("x",Const(0)),Assign("y",Add(Var("x"),Const(1)))))    

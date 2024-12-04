@@ -7,8 +7,10 @@ type exprval = Bool of bool | Nat of int
 type state = ide -> exprval    
 
 (* configuration = state | (command,state) *)
-type conf = St of state | Cmd of cmd * state   Cmd of cmd * state
-
+type conf = 
+ | St of state         (* stato corrente, sistema fermo *)
+ | Cmd of cmd * state  (* coppia comando, state (modificato) *)
+ 
 exception TypeError of string
 exception UnboundVar of string
 exception NoRuleApplies

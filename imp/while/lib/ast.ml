@@ -1,4 +1,4 @@
-(* todo *)
+(* Identificatori *)
 type ide = string
   
 (* Espressioni *)
@@ -16,7 +16,7 @@ type expr =
   | Eq of expr * expr
   | Leq of expr * expr
 
-(* todo *)
+(* Comandi *)
 type cmd =
   | Skip
   | Assign of string * expr
