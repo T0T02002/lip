@@ -31,7 +31,7 @@ open Ast
 
 
 (* priorità: va dal basso all'alto *)
-(*one state has shift/reduce conflicts si ha quando non si assegnano le precedenze *)
+(* DA CAPIRE SE È LA MIGLIOR CONFIGURAZIONE *)
 %left OR
 %left AND
 %left NOT
@@ -40,7 +40,7 @@ open Ast
 %left MUL
 %left SEQ
 %nonassoc ELSE
-%left DO
+%nonassoc DO
 // %left ISZERO    
 // %left PRED SUCC 
 
@@ -62,17 +62,13 @@ expr:
   | e1 = expr; AND; e2 = expr; { And(e1,e2) }
   | e1 = expr; OR; e2 = expr; { Or(e1,e2) }
   | LPAREN; e = expr; RPAREN {e}
-  | NOT; e0 = expr; { Not(e0) } /*
-  | SUCC; e1 = expr; { Succ(e1) }
-  | PRED; e1 = expr; { Pred(e1) }
-  | ISZERO; e1 = expr; { IsZero(e1) }
-  | ZERO { Zero } */
+  | NOT; e0 = expr; { Not(e0) }
   | e1 = expr; ADD; e2 = expr; { Add(e1,e2) }
   | e1 = expr; SUB; e2 = expr; { Sub(e1,e2) }
   | e1 = expr; MUL; e2 = expr; { Mul(e1,e2) }
   | e1 = expr; EQ; e2 = expr; { Eq(e1,e2) }
   | e1 = expr; LEQ; e2 = expr; { Leq(e1,e2) }
-  | num = CONST { Const( int_of_string num )} (* trasforma in string *)
+  | num = CONST { Const( int_of_string num )} (* prende string e trasforma in intero *)
   | var = VAR { Var( var )} (* è già string *)
 ;
 

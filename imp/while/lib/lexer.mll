@@ -3,8 +3,8 @@ open Parser
 }
 
 let white = [' ' '\t']+
-let const = ['0'-'9']['0'-'9']*
-let var = ['a'-'z''A'-'Z']['a'-'z''A'-'Z']*
+let const = ['0'-'9']['0'-'9']*                           (* '0','01' accettate *)
+let var = ['a'-'z''A'-'Z''_']['a'-'z''A'-'Z''0'-'9''_']*  (* 'a','Aa_1' accettate *)
 
 
 rule read =
@@ -34,6 +34,7 @@ rule read =
   | "while" { WHILE }
   | "do" { DO }
 
+  (* precedenza bassa perché altrimenti "if" viene letto come VAR e non come IF *)
   | const { CONST (Lexing.lexeme lexbuf) }
   | var { VAR (Lexing.lexeme lexbuf) }
   

@@ -2,18 +2,24 @@ open Ast
 open Types
 
 
-let bottom _ = failwith "fail"
+(* Prende una stringa in input rappresentante il comando da analizzare "x:=0" in una 
+ * rappresentazione strutturata di tipo cmd ( ad esempio (Assign of string * expr)) *)
+let parse (s : string) : cmd =  
+  (* trasforma s in un buffer lessicale utilizzato dal lexer per leggere incrementalmente *) 
+  let lexbuf = Lexing.from_string s in  
+  (* Lexer.read è il lexer che scansiona il buffer lexbuf e lo dà in pasto al parser Parser.prog *)
+  (* Parser.prog riceve i token (es. TRUE) dal lexer, li analizza e li trasforma in AST (NOT;e0=expr;{Not(e0)}) *)
+  let ast = Parser.prog Lexer.read lexbuf in  
+  ast (* Il risultato è in ast *)
 
-(* Esegue le regole di parsing su una stringa *)
-let parse (s : string) : cmd =   (* cambia in cmd *)
-  let lexbuf = Lexing.from_string s in
-  let ast = Parser.prog Lexer.read lexbuf in 
-  ast 
 
   
-(* BIG STEP SEMANTIC: l'espressione viene valutata senza passi intermedi, ricorsione che riduce l'espressione in un singolo passo*)
-(* Valuta una boolExpr per ottenere true o false, contempla l'if nativo di ocaml*)
-let rec eval_expr = fun state expr -> 
+(* BIG STEP SEMANTIC, restituisce senza passaggi intermedi un risultato *)
+(* Prende in input state (funzione che mappa una variabile un valore in un certo stato)
+ * e expr (espressione da valutare) *)
+let rec eval_expr : (state -> expr -> exprval) = fun 
+  state expr -> 
+  (* esamina il tipo di expr e in base a esso codifica un exprval (Bool true) *)
   match expr with
   | True -> Bool true
   | False -> Bool false 
@@ -50,6 +56,7 @@ let rec eval_expr = fun state expr ->
     
   | Eq (a,b) -> (
     match (eval_expr state a, eval_expr state b) with 
+    | Bool a, Bool b -> Bool (a=b)
     | Nat a, Nat b -> Bool (a=b)
     | _ -> failwith "I valori di Eq devono essere dello stesso tipo" )
 
@@ -58,34 +65,93 @@ let rec eval_expr = fun state expr ->
     | Nat a, Nat b -> Bool (a<=b)
     | _ -> failwith "I valori di Leq devono essere entrambi numerici" )
 
+  (* Const è sempre un numero, quindi ne viene restituito il valore *)
   | Const num -> Nat num 
-  | Var var -> state var     
+
+  (* Var cambia, quindi viene restituito il valore dentro state (valore corrente) *)
+  | Var var -> 
+    try state var
+    with _ -> raise (UnboundVar var)   (* se var non esiste fallisce *)
   
 
-(* bind restituisce una funzione ch rappresenta lo stato aggiornato *)
-(* se applicata a y, e y è uguale x, restituisce value *)
-(* altrimenti restituisce il valore originale di y nello stato state *)
+
+(* bind restituisce una funzione aggiornata dello stato per una variabile *)
+(* lega un valore a una variabile in uno stato e restituisce un nuovo stato modificato *)
+(* state: funzione che rappresenta uno stato. mappa un identificativo a un'exprval *)
+(* x: la variabile che vogliamo aggiornare *)
+(* value: il nuovo valore che vogliamo dare a x *)
+(* y: variabile che vogliamo cercare nel vecchio stato *)
 let bind state x value y = 
-  if x = y then value else state y
+  (* se stiamo cercando y, che è uguale a x, allora restituisce il nuovo valore associato a x (value) *)
+  if x = y then value 
+  (* il valore viene restituito invariato altrimenti *)  
+  else state y
+(* ESEMPIO *)
+(* let state = fun x -> if x = "a" then 1 else 2 *)
+(* state "a" = 1    mappo 1 ad 'a' *)
+(* state "b" = 2    mappo 2 a  'b' *)
+(* let new_state = bind state "a" 10 *)
+(* new_state "a" = 10    'a' corrisponde a new_state mappato ad 'a', quindi modifica 'a' in 10 *)
+(* new_state "b" = 2     'b' non corrisponde a new_state mappato ad 'a', quindi ritorna il valore corrente di b *)
 
-(* SMALL STEP SEMANTIC: l'espressione viene valutata passo dopo passo usando una regola alla volta, visualizza gli stati intermedi*)
-(* Applica una regola di valutazione all'espressione booleana, con contempla l'if nativo di ocaml *)
+
+
+(* SMALL STEP SEMANTIC: l'espressione viene valutata passo dopo passo usando una regola alla volta, visualizza gli stati intermedi
+
+-------------------------- [Skip]
+  Cmd (skip, st) --> St st
+
+            st |- e ==> v
+--------------------------------------- [Assign]
+  Cmd (x := e, st) --> St st[x |-> v]
+
+      Cmd (c1, st) --> St st'
+------------------------------------- [Seq_St]
+  Cmd (c1;c2, st) --> Cmd (c2, st')
+
+    Cmd (c1, st) --> Cmd (c1', st')
+----------------------------------------- [Seq_Cmd]
+  Cmd (c1;c2, st) --> Cmd (c1';c2, st')
+
+          st |- e ==> false
+--------------------------------------------------- [If_False]
+  Cmd (if e then c1 else c2, st) --> Cmd (c2, st)
+
+          st |- e ==> true
+--------------------------------------------------- [If_True]
+  Cmd (if e then c1 else c2, st) --> Cmd (c1, st)
+
+          st |- e ==> false
+------------------------------------ [While_False]
+  Cmd (while e do c, st) --> St st
+
+          st |- e ==> true
+-------------------------------------------------------- [While_True]
+  Cmd (while e do c, st) --> Cmd (c; while e do c, st)
+*)
+
+
 let rec trace1 = function
-  | Cmd (Skip, state) -> St state (* non fa nulla, termina subito *)
+  (* Non fa nulla, restituisce lo stato corrente state *)
+  | Cmd (Skip, state) -> St state 
 
-  | Cmd (Assign (x,e), state) -> 
-    let new_state = bind state x (eval_expr state e) in St new_state
+  (* Se è un'assegnamento, calcola il valore di expr e lo associa a x nel nuvo stato *)
+  | Cmd (Assign (x,expr), state) -> 
+    let new_state = bind state x (eval_expr state expr) in St new_state
   
+  (* Se è una sequenza di comandi, esegui in modo ricorsivo entrambi finché non si ha St state' *)  
   | Cmd (Seq (comand1,comand2), state) -> (
     match trace1 (Cmd (comand1,state)) with 
     | Cmd (comand1',state') -> Cmd (Seq (comand1',comand2), state')
     | St state' -> Cmd (comand2, state'))
 
-  | Cmd (If (expr,comand1,comand2), state) -> (
+  (* In If valuta expr, confronta il tipo ed esegui il tipo di comando in base al valore della condizione *)  
+  | Cmd (If (expr,c_then,c_else), state) -> (
     match eval_expr state expr with 
-    | Bool b -> if b then Cmd (comand1, state) else Cmd (comand2, state)
+    | Bool b -> if b then Cmd (c_then, state) else Cmd (c_else, state)
     | _ -> failwith "Errore, expr di If vuole un valore booleano" )
 
+  (* In While valuta la condizione di while, se essa è vera continua con comand altrimenti termina con St state *)  
   | Cmd (While (expr,comand), state) -> (
     match eval_expr state expr with 
     | Bool true -> Cmd (Seq (comand, While (expr, comand)), state)
@@ -95,16 +161,25 @@ let rec trace1 = function
   | _ -> raise NoRuleApplies
 
 
+(* Fallisce sempre, serve per la funzione dello stato iniziale *)
+let bottom _ = failwith "fail"
+
 
 (* crea un interprete passo passo per il linguaggio, seguendo la semantica dei comandi *)
-let trace (n_steps : int) (c : cmd) : conf list =
-  let conf0 = Cmd (c, bottom) in
-  let rec helper n conf =
-    if n > 0 then
+(* esegue un numero specifico di passi, limitando la valutazione a un numero n_steps di passi *)
+let trace (n_steps : int) (comand : cmd) : conf list =
+  (* crea una configurazione iniziale conf0, ossia un comando in uno stato iniziale (tipo conf) *)
+  let conf0 = Cmd (comand, bottom) in
+  (* esegue il passo ricorsivo con trace *)
+  let rec helper n_steps conf =
+    if n_steps > 0 then
       try
-        let conf' = trace1 conf in
-        conf :: helper (n - 1) conf'
+        (* configurazione attuale rinominata e aggiunta all'inizio della lista, steps decrementati *)
+        let conf1 = trace1 conf in
+        conf :: helper (n_steps - 1) conf1
       with NoRuleApplies -> [ conf ]
+    (* altrimenti termina la ricosione *)  
     else [ conf ]
-  in
-  helper n_steps conf0
+  in helper n_steps conf0 (* TODO CAPIRE *)
+
+ 
