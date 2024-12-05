@@ -9,42 +9,38 @@ open Ast
 %token FALSE
 %token LPAREN
 %token RPAREN
-%token IF
-%token THEN
-%token ELSE
 %token EOF
 %token AND
 %token OR
-%token NOT /* 
-%token ZERO
-%token ISZERO 
-%token PRED 
-%token SUCC */
-%token ADD 
-%token SUB 
-%token MUL 
-%token WHILE 
-%token DO
-%token EQ 
-%token LEQ 
-%token SKIP 
-%token ASSIGN 
+%token NOT
+%token ADD
+%token SUB
+%token MUL
+%token EQ
+%token LEQ
+%token SKIP
+%token ASSIGN
 %token SEQ
+%token IF
+%token THEN
+%token ELSE
+%token WHILE
+%token DO
 %token <string> CONST (* stringa perché è tokenizzato come stringa *)
 %token <string> VAR 
 
 
 (* priorità: va dal basso all'alto *)
 (*one state has shift/reduce conflicts si ha quando non si assegnano le precedenze *)
-%left SEQ
-%left DO
-%nonassoc ELSE
 %left OR
 %left AND
+%left NOT
 %left EQ LEQ
 %left ADD SUB
 %left MUL
-%right NOT
+%left SEQ
+%nonassoc ELSE
+%left DO
 // %left ISZERO    
 // %left PRED SUCC 
 
@@ -52,10 +48,12 @@ open Ast
 
 // REGOLE
 %start <cmd> prog  // prende tutte le regole in automatico
+
+
 %%
 
 prog:
-  | e = cmd; EOF { e }  // prog diventa cmd
+  | c = cmd; EOF { c }  // prog diventa cmd
 ;
 
 expr:
@@ -82,10 +80,11 @@ cmd:
   | SKIP { Skip }
   | var = VAR; ASSIGN; e = expr; { Assign(var,e) }
   | c1 = cmd; SEQ; c2 = cmd; { Seq(c1,c2) }
-  | IF; e = expr; THEN; c_then = cmd; ELSE; c_else = cmd; { If(e, c_then, c_else) }
-  | IF; e = expr; THEN; c_then = cmd; ELSE; LPAREN; c_else = cmd; RPAREN; { If(e, c_then, c_else) }
+  
+  | IF; e = expr; THEN c_then = cmd; ELSE; c_else = cmd; { If(e, c_then, c_else) }
+  | IF; e = expr; THEN c_then = cmd; ELSE; LPAREN; c_else = cmd; RPAREN; { If(e, c_then, c_else) }
   | IF; e = expr; THEN; LPAREN; c_then = cmd; RPAREN; ELSE; c_else = cmd; { If(e, c_then, c_else) }
+  
   | WHILE; e = expr; DO; c = cmd; { While(e,c) }
   | WHILE; e = expr; DO; LPAREN; c = cmd; RPAREN; { While(e,c) }
-;
-
+  ;

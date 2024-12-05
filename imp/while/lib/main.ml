@@ -1,6 +1,9 @@
 open Ast
 open Types
 
+
+let bottom _ = failwith "fail"
+
 (* Esegue le regole di parsing su una stringa *)
 let parse (s : string) : cmd =   (* cambia in cmd *)
   let lexbuf = Lexing.from_string s in
@@ -13,7 +16,7 @@ let parse (s : string) : cmd =   (* cambia in cmd *)
 let rec eval_expr = fun state expr -> 
   match expr with
   | True -> Bool true
-    | False -> Bool false 
+  | False -> Bool false 
 
   | And (e0,e1) -> (
     match (eval_expr state e0, eval_expr state e1) with 
@@ -48,13 +51,11 @@ let rec eval_expr = fun state expr ->
   | Eq (a,b) -> (
     match (eval_expr state a, eval_expr state b) with 
     | Nat a, Nat b -> Bool (a=b)
-    | Bool a, Bool b -> Bool (a=b)
     | _ -> failwith "I valori di Eq devono essere dello stesso tipo" )
 
   | Leq (a,b) -> (
     match (eval_expr state a, eval_expr state b) with 
-    | Nat a, Nat b -> Bool (a=b)
-    | Bool a, Bool b -> Bool (a<=b)
+    | Nat a, Nat b -> Bool (a<=b)
     | _ -> failwith "I valori di Leq devono essere entrambi numerici" )
 
   | Const num -> Nat num 
@@ -72,8 +73,8 @@ let bind state x value y =
 let rec trace1 = function
   | Cmd (Skip, state) -> St state (* non fa nulla, termina subito *)
 
-  | Cmd (Assign (lvalue,rvalue), state) -> 
-    let new_state = bind state lvalue (eval_expr state rvalue) in St new_state
+  | Cmd (Assign (x,e), state) -> 
+    let new_state = bind state x (eval_expr state e) in St new_state
   
   | Cmd (Seq (comand1,comand2), state) -> (
     match trace1 (Cmd (comand1,state)) with 
@@ -82,7 +83,7 @@ let rec trace1 = function
 
   | Cmd (If (expr,comand1,comand2), state) -> (
     match eval_expr state expr with 
-    | Bool e -> if e then Cmd (comand1, state) else Cmd (comand2, state)
+    | Bool b -> if b then Cmd (comand1, state) else Cmd (comand2, state)
     | _ -> failwith "Errore, expr di If vuole un valore booleano" )
 
   | Cmd (While (expr,comand), state) -> (
@@ -93,7 +94,7 @@ let rec trace1 = function
   
   | _ -> raise NoRuleApplies
 
-let bottom _ = failwith "fail"
+
 
 (* crea un interprete passo passo per il linguaggio, seguendo la semantica dei comandi *)
 let trace (n_steps : int) (c : cmd) : conf list =

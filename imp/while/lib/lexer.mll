@@ -3,15 +3,13 @@ open Parser
 }
 
 let white = [' ' '\t']+
-let var = [ 'a'-'z' 'A'-'Z' ][ 'a'-'z' 'A'-'Z' '0'-'9' '_' ]* (* alfanumerici e underscore *)
-let const = ['0'-'9']['0'-'9']* (* 01 accettata*)
+let const = ['0'-'9']['0'-'9']*
+let var = ['a'-'z''A'-'Z']['a'-'z''A'-'Z']*
 
 
 rule read =
   parse
   | white { read lexbuf }  
-  | var { VAR (Lexing.lexeme lexbuf) }
-  | const { CONST (Lexing.lexeme lexbuf) }
 
   | "true" { TRUE }
   | "false" { FALSE }
@@ -22,11 +20,7 @@ rule read =
   | "else" { ELSE } 
   | "and" { AND }
   | "or" { OR }
-  | "not" { NOT } (*
-  | "succ" { SUCC }
-  | "0" { ZERO }
-  | "pred" { PRED }
-  | "iszero" { ISZERO } *)
+  | "not" { NOT }
 
   | "+" { ADD }
   | "-" { SUB }
@@ -39,4 +33,8 @@ rule read =
   | "skip" { SKIP }
   | "while" { WHILE }
   | "do" { DO }
+
+  | const { CONST (Lexing.lexeme lexbuf) }
+  | var { VAR (Lexing.lexeme lexbuf) }
+  
   | eof { EOF }
