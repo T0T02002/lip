@@ -1,11 +1,23 @@
 open Ast
 
+
+(* Rappresenta una locazione di memoria *)
 type loc = int
 
-type envval = BVar of loc | IVar of loc
-type memval = Bool of bool | Int of int
+(* Indica se loc è collegato a una variabile di tipo intero o booleano *)
+type envval = 
+ | BVar of loc 
+ | IVar of loc
 
+(* Indica nella pratica il tipo del valore nella variabile *) 
+type memval = 
+ | Bool of bool 
+ | Int of int
+
+(* Mappa la stringa identificativa con l'enval, il quale specifica il tipo del valore contenuto in loc  *) 
 type env = ide -> envval
+
+(* Tipo funzionale che mappa una locazione (intera) con il suo contenuto effettivo (val/id)*)
 type mem = loc -> memval
 
 exception TypeError of string
@@ -30,6 +42,7 @@ let setmem st memory =
 let setloc st firstloc =
   { envstack = st.envstack; memory = st.memory; firstloc }
 
+(* testa dello stato *)
 let topenv st =
   match st.envstack with
   | [] -> failwith "empty environment stack"
