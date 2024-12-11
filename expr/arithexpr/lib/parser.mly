@@ -40,8 +40,8 @@ prog:
 expr:
   | TRUE { True }
   | FALSE { False }
-  | e1 = expr; AND; e2 = expr; { If (e1, e2, False) } (* Modo alternativo di scrivere AND (previene errore test smallstep 6) *)
-  | e1 = expr; OR; e2 = expr; { If( e1, True, e2) }   (* Modo alternativo di scrivere OR *)
+  | e1 = expr; AND; e2 = expr; { And (e1, e2) }
+  | e1 = expr; OR; e2 = expr; { Or (e1, e2) }
   | NOT; e0 = expr; { Not(e0) }
   | IF; e1 = expr; THEN; e2 = expr; ELSE; e3 = expr; { If(e1, e2, e3) }
   | SUCC; e1 = expr; { Succ(e1) }

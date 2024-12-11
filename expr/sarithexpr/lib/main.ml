@@ -103,16 +103,19 @@ let rec trace1 = function
   | Not(True) -> False
   | Not(e0) -> Not(trace1 e0)
 
-  (* TODO assicurati della correttezza di AND, OR, NOT *)
   | And(True,True) -> True
   | And(_,False)
-  | And(False,_) -> False  (* qualsiasi espressione con uno dei due falso sarà falsa *)
-  | And(e0,e1) -> And(trace1 e0,e1) (* altrimenti riduce l'albero (serve una virgola)*)
+  | And(False,_) -> False  
+  | And (e0, True) -> And (trace1 e0, True) 
+  | And (True, e0) -> And (True, trace1 e0) 
+  | And(e0,e1) -> And(trace1 e0,e1)
 
   | Or(True,_) 
-  | Or(_,True) -> True    (* qualsiasi espressione con uno dei due vero sarà vera *)
+  | Or(_,True) -> True
   | Or(False,False) -> False
-  | Or(e0,e1) -> Or(trace1 e0,e1) (* altrimenti riduce l'albero *)
+  | Or(e0, False) -> Or (trace1 e0, False)
+  | Or(False, e0) -> Or (False, trace1 e0)
+  | Or(e0,e1) -> Or(trace1 e0,e1)
 
   | Succ e0 -> Succ (trace1 e0) 
 

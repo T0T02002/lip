@@ -84,6 +84,10 @@ let%test "test_smallstep10" = test_smallstep "pred 0" None
 
 let%test "test_smallstep11" = test_smallstep "pred pred succ 0" None 
 
+let%test "test_smallstep12" = test_smallstep "true and iszero 0" (Some (Bool true))
+
+let%test "test_smallstep13" = test_smallstep "false or iszero 0" (Some (Bool true))
+
 (* EOF *)
 let%test_unit _ =
   print_endline "OK TEST"
