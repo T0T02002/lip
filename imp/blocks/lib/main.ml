@@ -17,68 +17,77 @@ let parse (s : string) : cmd =
 (* BIG STEP SEMANTIC, restituisce senza passaggi intermedi un risultato *)
 (* Prende in input state (funzione che mappa una variabile un valore in un certo stato)
  * e expr (espressione da valutare) *)
-let rec eval_expr : (state -> expr -> memval) = fun 
-  state expr -> 
-  (* esamina il tipo di expr e in base a esso codifica un exprval (Bool true) *)
+ let rec eval_expr (state : state) (expr : expr) : memval =
   match expr with
   | True -> Bool true
-  | False -> Bool false 
+  | False -> Bool false
 
-  | And (e0,e1) -> (
-    match (eval_expr state e0, eval_expr state e1) with 
-    | Bool b1, Bool b2 -> Bool (b1 && b2)
-    | _ -> failwith "I parametri di And devono essere booleani")
+  | And (e0, e1) -> (
+      match (eval_expr state e0, eval_expr state e1) with
+      | Bool b1, Bool b2 -> Bool (b1 && b2)
+      | _ -> failwith "I parametri di And devono essere booleani")
 
-  | Or (e0,e1) -> (
-    match (eval_expr state e0, eval_expr state e1) with 
-    | Bool b1, Bool b2 -> Bool (b1 || b2)
-    | _ -> failwith "I parametri di Or devono essere booleani")
+  | Or (e0, e1) -> (
+      match (eval_expr state e0, eval_expr state e1) with
+      | Bool b1, Bool b2 -> Bool (b1 || b2)
+      | _ -> failwith "I parametri di Or devono essere booleani")
 
-  | Not (e0) -> (
-    match (eval_expr state e0) with 
-    | Bool b -> Bool (not b)
-    | _ -> failwith "Il parametro di Not deve essere booleano")
+  | Not e0 -> (
+      match eval_expr state e0 with
+      | Bool b -> Bool (not b)
+      | _ -> failwith "Il parametro di Not deve essere booleano")
 
-  | Add (e0,e1) -> (
-    match (eval_expr state e0, eval_expr state e1) with 
-    | Nat n1, Nat n2 -> Nat (n1+n2)
-    | _ -> failwith "I parametri di Add devono essere numeri")
+  | Add (e0, e1) -> (
+      match (eval_expr state e0, eval_expr state e1) with
+      | Int n1, Int n2 -> Int (n1 + n2)
+      | _ -> failwith "I parametri di Add devono essere numeri")
 
-  | Sub (e0,e1) -> (
-    match (eval_expr state e0, eval_expr state e1) with 
-    | Nat n1, Nat n2 -> Nat (n1-n2)
-    | _ -> failwith "I parametri di Sub devono essere numeri")
+  | Sub (e0, e1) -> (
+      match (eval_expr state e0, eval_expr state e1) with
+      | Int n1, Int n2 -> Int (n1 - n2)
+      | _ -> failwith "I parametri di Sub devono essere numeri")
 
-  | Mul (e0,e1) -> (
-    match (eval_expr state e0, eval_expr state e1) with 
-    | Nat n1, Nat n2 -> Nat (n1*n2)
-    | _ -> failwith "I parametri di Mul devono essere numeri")  
-    
-  | Eq (a,b) -> (
-    match (eval_expr state a, eval_expr state b) with 
-    | Bool a, Bool b -> Bool (a=b)
-    | Nat a, Nat b -> Bool (a=b)
-    | _ -> failwith "I valori di Eq devono essere dello stesso tipo" )
+  | Mul (e0, e1) -> (
+      match (eval_expr state e0, eval_expr state e1) with
+      | Int n1, Int n2 -> Int (n1 * n2)
+      | _ -> failwith "I parametri di Mul devono essere numeri")
 
-  | Leq (a,b) -> (
-    match (eval_expr state a, eval_expr state b) with 
-    | Nat a, Nat b -> Bool (a<=b)
-    | _ -> failwith "I valori di Leq devono essere entrambi numerici" )
+  | Eq (a, b) -> (
+      match (eval_expr state a, eval_expr state b) with
+      | Bool a, Bool b -> Bool (a = b)
+      | Int a, Int b -> Bool (a = b)
+      | _ -> failwith "I valori di Eq devono essere dello stesso tipo")
 
-  (* Const è sempre un numero, quindi ne viene restituito il valore *)
-  | Const num -> Nat num 
+  | Leq (a, b) -> (
+      match (eval_expr state a, eval_expr state b) with
+      | Int a, Int b -> Bool (a <= b)
+      | _ -> failwith "I valori di Leq devono essere entrambi numerici")
 
-  (* Var cambia, quindi viene restituito il valore dentro state (valore corrente) *)
-  | Var nomevar_ide -> (
-    let env = topenv state in
-    match env nomevar_ide with 
-    | BVar l 
-    | IVar l -> (getmem state) l
-    
-  )
+  | Const num -> Int num
+
+  | Var var -> (
+      let env = topenv state in
+      match env var with
+      | BVar loc
+      | IVar loc -> (getmem state) loc
+    )
   
 
+  let eval_decl (state : state) (decl_list : decl list) : state =
+    let (env, loc) =
+      List.fold_left
+        (fun (env, loc) decl ->
+           match decl with
+           | IntVar var -> (bind_env env var (IVar loc), loc + 1)
+           | BoolVar var -> (bind_env env var (BVar loc), loc + 1))
+        (topenv state, getloc state)
+        decl_list in
+    let envstack = getenv state in
+    make_state (env :: envstack) (getmem state) loc
 
+      
+
+(*
 (* bind restituisce una funzione aggiornata dello stato per una variabile *)
 (* lega un valore a una variabile in uno stato e restituisce un nuovo stato modificato *)
 (* state: funzione che rappresenta uno stato. mappa un identificativo a un'exprval *)
@@ -97,10 +106,11 @@ let bind state x value y =
 (* let new_state = bind state "a" 10 *)
 (* new_state "a" = 10    'a' corrisponde a new_state mappato ad 'a', quindi modifica 'a' in 10 *)
 (* new_state "b" = 2     'b' non corrisponde a new_state mappato ad 'a', quindi ritorna il valore corrente di b *)
+*)
 
 
-
-(* SMALL STEP SEMANTIC: l'espressione viene valutata passo dopo passo usando una regola alla volta, visualizza gli stati intermedi
+(* SMALL STEP SEMANTIC: l'espressione viene valutata passo dopo passo usando 
+una regola alla volta; visualizza gli stati intermedi
 
 -------------------------- [Skip]
   Cmd (skip, st) --> St st
@@ -135,19 +145,32 @@ let bind state x value y =
 *)
 
 
-let rec trace1 = function
+let rec trace1 : conf -> conf = function
   (* Non fa nulla, restituisce lo stato corrente state *)
   | Cmd (Skip, state) -> St state 
 
-  (* Se è un'assegnamento, calcola il valore di expr e lo associa a x nel nuvo stato *)
-  | Cmd (Assign (x,expr), state) -> 
-    let new_state = bind state x (eval_expr state expr) in St new_state
+  (* todo *)
+  | Cmd (Assign (var,expr), state) -> 
+    let (env, mem) = (topenv state, getmem state) in
+
+    let new_mem = match 
+    eval_expr state expr with 
+    | Int ivar -> (
+      match env var with 
+      | IVar i -> bind_mem mem i (Int ivar)
+      | _ -> failwith "var deve essere int" )
+    | Bool bvar -> (
+      match env var with 
+      | BVar b -> bind_mem mem b (Bool bvar)
+      | _ -> failwith "var deve essere bool" ) in 
+    
+    St (make_state (getenv state) new_mem (getloc state))
   
-  (* Se è una sequenza di comandi, esegui in modo ricorsivo entrambi finché non si ha St state' *)  
-  | Cmd (Seq (comand1,comand2), state) -> (
-    match trace1 (Cmd (comand1,state)) with 
-    | Cmd (comand1',state') -> Cmd (Seq (comand1',comand2), state')
-    | St state' -> Cmd (comand2, state'))
+  (* todo *)  
+  | Cmd (Seq (command1,command2), state) -> (
+    match trace1 (Cmd (command1,state)) with 
+    | Cmd (command1',state') -> Cmd (Seq (command1',command2), state')
+    | St state' -> Cmd (command2, state'))
 
   (* In If valuta expr, confronta il tipo ed esegui il tipo di comando in base al valore della condizione *)  
   | Cmd (If (expr,c_then,c_else), state) -> (
@@ -156,24 +179,35 @@ let rec trace1 = function
     | _ -> failwith "Errore, expr di If vuole un valore booleano" )
 
   (* In While valuta la condizione di while, se essa è vera continua con comand altrimenti termina con St state *)  
-  | Cmd (While (expr,comand), state) -> (
+  | Cmd (While (expr,command), state) -> (
     match eval_expr state expr with 
-    | Bool true -> Cmd (Seq (comand, While (expr, comand)), state)
+    | Bool true -> Cmd (Seq (command, While (expr, command)), state)
     | Bool false -> St state
     | _ -> failwith "Errore, expr di While non è un valore booleano")
+  
+  | Cmd (Decl (decl_list, command), state) -> (
+    let new_state = eval_decl state decl_list in 
+    match trace1 (Cmd (command,new_state)) with 
+    | St state' -> St (make_state (popenv state') (getmem state') (getloc state'))
+    | Cmd (command',state') -> Cmd (Block command', state'))
+
+  | Cmd (Block command, state) -> (
+    match trace1 (Cmd (command, state)) with 
+    | St state' -> St (make_state (popenv state') (getmem state') (getloc state'))
+    | Cmd (command',state') -> Cmd (Block command', state'))
   
   | _ -> raise NoRuleApplies
 
 
-(* Fallisce sempre, serve per la funzione dello stato iniziale *)
-let bottom _ = failwith "fail"
+(* Serve per la funzione dello stato iniziale 
+let bottom _ = failwith "fail"*)
 
 
 (* crea un interprete passo passo per il linguaggio, seguendo la semantica dei comandi *)
 (* esegue un numero specifico di passi, limitando la valutazione a un numero n_steps di passi *)
-let trace (n_steps : int) (comand : cmd) : conf list =
+let trace (n_steps : int) (command : cmd) : conf list =
   (* crea una configurazione iniziale conf0, ossia un comando in uno stato iniziale (tipo conf) *)
-  let conf0 = Cmd (comand, bottom) in
+  let conf0 = Cmd (command, state0) in
   (* esegue il passo ricorsivo con trace *)
   let rec helper n_steps conf =
     if n_steps > 0 then
@@ -182,7 +216,7 @@ let trace (n_steps : int) (comand : cmd) : conf list =
         let conf1 = trace1 conf in
         conf :: helper (n_steps - 1) conf1
       with NoRuleApplies -> [ conf ]
-    (* altrimenti termina la ricosione *)  
+    (* altrimenti termina la ricorsione *)  
     else [ conf ]
   in helper n_steps conf0 (* TODO CAPIRE *)
 

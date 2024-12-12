@@ -35,7 +35,7 @@ open Ast
 
 
 (* priorità: va dal basso all'alto *)
-(* DA CAPIRE SE È LA MIGLIOR CONFIGURAZIONE *)
+(* Da applicare solo agli operatori *)
 %left OR
 %left AND
 %left NOT
@@ -48,13 +48,13 @@ open Ast
 
 
 // REGOLE
-%start <decl> prog  // prende tutte le regole in automatico
+%start <cmd> prog  // prende tutte le regole in automatico
 
 
 %%
 
 prog:
-  | c = decl; EOF { c }  
+  | c = cmd; EOF { c }  
 ;
 
 expr:
@@ -86,9 +86,10 @@ cmd:
   | WHILE; e = expr; DO; c = cmd; { While(e,c) }
   | WHILE; e = expr; DO; LPAREN; c = cmd; RPAREN; { While(e,c) }
 
-  | LBRACKET; e = comd; RBRACKET; { Block(e) }
+  | LBRACKET; lst=list(decl); c = cmd; RBRACKET; { Decl(lst,c) }
 ;
 
 decl:
-  | INT; VAR;
+  | INT; int_var = VAR; SEQ { IntVar(int_var) }
+  | BOOL; bool_var = VAR; SEQ { BoolVar(bool_var) }
 ;
