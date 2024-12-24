@@ -23,6 +23,9 @@ exception UnboundVar of ide
 exception UnboundLoc of loc
 (** Raised when trying to access an unknown location. *)
 
+exception PredOfZero
+(* NON PRESENTE *)
+
 exception NoRuleApplies
 (** Raised when an expression cannot take a step. *)
 

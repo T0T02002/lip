@@ -28,4 +28,7 @@ type decl =
   | IntVar of ide
   | Fun of ide * ide * cmd * expr  (** name, parameter, body command, return expr *)
 
+  | DSeq of decl * decl (* NON PRESENTE, CHECK *)
+  | EmptyDecl           (* NON PRESENTE, CHECK *)
+
 type prog = Prog of (decl list * cmd)
