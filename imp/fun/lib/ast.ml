@@ -31,4 +31,4 @@ type decl =
   | DSeq of decl * decl (* NON PRESENTE, CHECK *)
   | EmptyDecl           (* NON PRESENTE, CHECK *)
 
-type prog = Prog of (decl list * cmd)
+type prog = Prog of (decl (* list *) * cmd)

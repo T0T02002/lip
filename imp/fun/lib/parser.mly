@@ -100,8 +100,8 @@ cmd:
 
 decl:
   | INT; int_var = IDE { IntVar(int_var) }
-  | BOOL; bool_var = IDE; SEQ { BoolVar(bool_var) } (* può dare problemi *)
+  (* | BOOL; bool_var = IDE; SEQ { BoolVar(bool_var) } (* può dare problemi *) *)
   | FUN; f = IDE; LPAREN; x = IDE; RPAREN; LBRACKET; c = cmd; SEQ; RETURN; e = expr; RBRACKET { Fun(f,x,c,e) }
   | d1 = decl; SEQ; d2 = decl { DSeq(d1,d2) }
-  | { EmptyDecl }
+  (* | { EmptyDecl } *)
 ;

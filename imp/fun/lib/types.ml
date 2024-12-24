@@ -120,3 +120,5 @@ let bind_ivar (st : state) x v =
 
 (** The type of small-step semantics configurations. *)
 type conf = St of state | Cmd of cmd * state
+
+let bind f x v = fun y -> if y=x then v else f y

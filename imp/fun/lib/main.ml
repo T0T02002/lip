@@ -6,7 +6,7 @@ open Types
 
 (* Prende una stringa in input rappresentante il comando da analizzare "x:=0" in una 
  * rappresentazione strutturata di tipo cmd ( ad esempio (Assign of string * expr)) *)
-let parse (s : string) : cmd =  
+let parse (s : string) : prog =  
   (* trasforma s in un buffer lessicale utilizzato dal lexer per leggere incrementalmente *) 
   let lexbuf = Lexing.from_string s in  
   (* Lexer.read è il lexer che scansiona il buffer lexbuf e lo dà in pasto al parser Parser.prog *)
@@ -27,115 +27,6 @@ let is_val = function
   | Const _ -> true
   | _ -> false
 
-(* BIG STEP SEMANTIC, restituisce senza passaggi intermedi un risultato *)
-(* Prende in input state (funzione che mappa una variabile un valore in un certo stato)
- * e expr (espressione da valutare) 
- let rec eval_expr (state : state) (expr : expr) : memval =
-  match expr with
-  | True -> Bool true
-  | False -> Bool false
-
-  | And (e0, e1) -> (
-      match (eval_expr state e0, eval_expr state e1) with
-      | Bool b1, Bool b2 -> Bool (b1 && b2)
-      | _ -> failwith "I parametri di And devono essere booleani")
-
-  | Or (e0, e1) -> (
-      match (eval_expr state e0, eval_expr state e1) with
-      | Bool b1, Bool b2 -> Bool (b1 || b2)
-      | _ -> failwith "I parametri di Or devono essere booleani")
-
-  | Not e0 -> (
-      match eval_expr state e0 with
-      | Bool b -> Bool (not b)
-      | _ -> failwith "Il parametro di Not deve essere booleano")
-
-  | Add (e0, e1) -> (
-      match (eval_expr state e0, eval_expr state e1) with
-      | Int n1, Int n2 -> Int (n1 + n2)
-      | _ -> failwith "I parametri di Add devono essere numeri")
-
-  | Sub (e0, e1) -> (
-      match (eval_expr state e0, eval_expr state e1) with
-      | Int n1, Int n2 -> Int (n1 - n2)
-      | _ -> failwith "I parametri di Sub devono essere numeri")
-
-  | Mul (e0, e1) -> (
-      match (eval_expr state e0, eval_expr state e1) with
-      | Int n1, Int n2 -> Int (n1 * n2)
-      | _ -> failwith "I parametri di Mul devono essere numeri")
-
-  | Eq (a, b) -> (
-      match (eval_expr state a, eval_expr state b) with
-      | Bool a, Bool b -> Bool (a = b)
-      | Int a, Int b -> Bool (a = b)
-      | _ -> failwith "I valori di Eq devono essere dello stesso tipo")
-
-  | Leq (a, b) -> (
-      match (eval_expr state a, eval_expr state b) with
-      | Int a, Int b -> Bool (a <= b)
-      | _ -> failwith "I valori di Leq devono essere entrambi numerici")
-
-  | Const num -> Int num
-
-  | Var var -> (
-      let env = topenv state in
-      match env var with
-      | BVar loc
-      | IVar loc -> (getmem state) loc
-    )
-  
-
-  let eval_decl (state : state) (decl_list : decl list) : state =
-    let (env, loc) =
-      List.fold_left
-        (fun (env, loc) decl ->
-           match decl with
-           | IntVar var -> (bind_env env var (IVar loc), loc + 1)
-           | BoolVar var -> (bind_env env var (BVar loc), loc + 1))
-        (topenv state, getloc state)
-        decl_list in
-    let envstack = getenv state in
-    make_state (env :: envstack) (getmem state) loc *)
-
-      
-
-
-
-(* SMALL STEP SEMANTIC: l'espressione viene valutata passo dopo passo usando 
-una regola alla volta; visualizza gli stati intermedi
-
--------------------------- [Skip]
-  Cmd (skip, st) --> St st
-
-            st |- e ==> v
---------------------------------------- [Assign]
-  Cmd (x := e, st) --> St st[x |-> v]
-
-      Cmd (c1, st) --> St st'
-------------------------------------- [Seq_St]
-  Cmd (c1;c2, st) --> Cmd (c2, st')
-
-    Cmd (c1, st) --> Cmd (c1', st')
------------------------------------------ [Seq_Cmd]
-  Cmd (c1;c2, st) --> Cmd (c1';c2, st')
-
-          st |- e ==> false
---------------------------------------------------- [If_False]
-  Cmd (if e then c1 else c2, st) --> Cmd (c2, st)
-
-          st |- e ==> true
---------------------------------------------------- [If_True]
-  Cmd (if e then c1 else c2, st) --> Cmd (c1, st)
-
-          st |- e ==> false
------------------------------------- [While_False]
-  Cmd (while e do c, st) --> St st
-
-          st |- e ==> true
--------------------------------------------------------- [While_True]
-  Cmd (while e do c, st) --> Cmd (c; while e do c, st)
-*)
 
 let rec trace1_expr state = function 
   | Var var -> (Const (apply state var), state)
@@ -175,9 +66,9 @@ let rec trace1_expr state = function
   | Call(f,Const(n)) -> ( match (topenv state) f with 
       IFun(x,cmd,expr) -> 
         let loc = getloc state in
-        let env' = bind_env (topenv state) x (IVar l) in (* CHECK bind_env, potrebbe essere chiamata in modo errato *)
+        let env' = bind_env (topenv state) x (IVar loc) in (* CHECK bind_env, potrebbe essere chiamata in modo errato *)
         let mem' = bind_mem (getmem state) loc n in      (* CHECK *)
-        let state' = (env'::(getenv state), mem', loc+1) in 
+        let state' = make_state (env'::getenv state) mem' (loc+1) in (* make state *)
         (CallExec(cmd,expr),state')
       | _ -> raise (TypeError "Stai chiamando una funzione non esistente"))
   | Call(f,expr) -> let (expr',state') = trace1_expr state expr in (Call(f,expr'),state')
@@ -186,7 +77,7 @@ let rec trace1_expr state = function
       St state' -> (CallRet(expr),state')
     | Cmd(cmd',state') -> (CallExec(cmd',expr),state'))
 
-  | CallRet(Const(n)) -> let state' = (popenv state, getmem state, getloc state) in (Const(n),state')
+  | CallRet(Const(n)) ->  let state' = make_state (popenv state) (getmem state) (getloc state) in (Const(n), state')
   | CallRet(e) -> let (e',state') = trace1_expr state e in (CallRet(e'),state')
   
   | _ -> raise NoRuleApplies
@@ -199,11 +90,11 @@ and trace1_cmd = function
     | Skip -> St state 
 
     | Assign(x,Const(n)) -> ( match topenv state x with 
-      | IVar loc -> St (getenv state, bind_ivar (getmem state) loc n, getloc state) (* CHECK *)
+      | IVar loc -> let new_state = make_state (getenv state) (bind_mem (getmem state) loc n) (getloc state) in St new_state (* CHECK *)
       | _ -> failwith " todo error message ")
     | Assign(x,expr) -> let (expr',state') = trace1_expr state expr in Cmd(Assign(x,expr'),state')
 
-    | Seq(c1,c2) -> ( match trace1_cmd (Cmd(c1,st)) with 
+    | Seq(c1,c2) -> ( match trace1_cmd (Cmd(c1,state)) with 
       | St state1 -> Cmd(c2,state1)
       | Cmd(c1',state1) -> Cmd(Seq(c1',c2),state1))
     
@@ -230,4 +121,8 @@ let rec trace_rec n t =
     in t::(trace_rec (n-1) t')
   with NoRuleApplies -> [t]  
 
- 
+(* CHECK TUTTA *)
+let trace n (Prog(d, c)) =
+  let (e, l) = sem_decl (bottom_env, 0) d in
+  let initial_state = make_state [e] bottom_mem l in
+  trace_rec n (Cmd(c, initial_state))

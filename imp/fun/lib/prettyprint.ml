@@ -28,9 +28,12 @@ and string_of_cmd = function
   | If(e,c1,c2) -> "if " ^ string_of_expr e ^ " then " ^ string_of_cmd c1 ^ " else " ^ string_of_cmd c2
   | While(e,c) -> "while " ^ string_of_expr e ^ " do " ^ string_of_cmd c
 
-let string_of_decl = function
+  (* MODIFIED *)
+let rec string_of_decl = function
+  | EmptyDecl -> ""
   | IntVar(x) -> "int " ^ x
   | Fun(f,x,c,e) -> "fun " ^ f ^ "(" ^ x ^ ") {" ^ string_of_cmd c ^ "return " ^ string_of_expr e ^ "}"
+  | DSeq(d1,d2) -> string_of_decl d1 ^ ";" ^ string_of_decl d2
 
 let string_of_env1 s x = match topenv s x with
   | IVar l -> string_of_int l ^ "/" ^ x
@@ -91,11 +94,14 @@ and vars_of_cmd = function
   | If(e,c1,c2) -> union (vars_of_expr e) (union (vars_of_cmd c1) (vars_of_cmd c2))
   | While(e,c) -> union (vars_of_expr e) (vars_of_cmd c)
 
-let vars_of_decl = function
+  (* MODIFIED *)
+let rec vars_of_decl = function
+  EmptyDecl -> []
   | IntVar(x) -> [x]
   | Fun(f,x,c,e) -> union [x;f] (union (vars_of_cmd c) (vars_of_expr e))
+  | DSeq(d1,d2) -> union (vars_of_decl d1) (vars_of_decl d2)     
 
-let vars_of_prog (Prog(ds,_)) = List.concat_map vars_of_decl ds
+let vars_of_prog (Prog(d,_)) = vars_of_decl d
 
 let string_of_conf vars = function
     St st -> string_of_state st vars
