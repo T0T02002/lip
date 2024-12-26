@@ -2,38 +2,32 @@ open Ast
 open Types
 
 
-(* apply è dichiarata in types *)
-
-(* Prende una stringa in input rappresentante il comando da analizzare "x:=0" in una 
- * rappresentazione strutturata di tipo cmd ( ad esempio (Assign of string * expr)) *)
-let parse (s : string) : prog =  
-  (* trasforma s in un buffer lessicale utilizzato dal lexer per leggere incrementalmente *) 
-  let lexbuf = Lexing.from_string s in  
-  (* Lexer.read è il lexer che scansiona il buffer lexbuf e lo dà in pasto al parser Parser.prog *)
-  (* Parser.prog riceve i token (es. TRUE) dal lexer, li analizza e li trasforma in AST (NOT;e0=expr;{Not(e0)}) *)
-  let ast = Parser.prog Lexer.read lexbuf in  
-  ast (* Il risultato è in ast *)
-
-(* eccezioni dichiarate in types *)
-
-(* botenv e botmem si chiamano bottom_env e bottom_mem e si trovano in types *)
-
-(* per bind esiste un bind_mem e un bind_env in types. Esiste anche bind_fun ma non so cosa svolga *)
-
-(* CHECK, SEMBRA INUTILIZZATA *)
-let is_val = function
-    True -> true
-  | False -> true
-  | Const _ -> true
-  | _ -> false
+(* prende una stringa, la passa al lexer per dividerla in token, i token son letti dal 
+   parser il quale costruisce l'AST.   *)
+let parse (s : string) : prog =
+  let lexbuf = Lexing.from_string s in
+  let ast = Parser.prog Lexer.read lexbuf in
+  ast
+(*  parse "int x; x:=1";;  *)
+(* - : prog = Prog (DSeq (IntVar "x", EmptyDecl), Assign ("x", Const 1))   *)
 
 
-let rec trace1_expr state = function 
-  | Var var -> (Const (apply state var), state)
+(******************************************************************************)
+(*                      Small-step semantics of expressions                   *)
+(******************************************************************************)
+
+let botenv = fun x -> failwith ("variable " ^ x ^ " unbound")
+let botmem = fun l -> failwith ("location " ^ string_of_int l ^ " undefined")
+    
+let bind f x v = fun y -> if y=x then v else f y
+
+
+let rec trace1_expr state = function
+  | Var x -> (Const(apply state x), state)
 
   | Not(True) -> (False,state)
   | Not(False) -> (True,state)
-  | Not(e0) -> let (e',state') = trace1_expr state e0 in (Not(e'),state')
+  | Not(e) -> let (e',state') = trace1_expr state e in (Not(e'),state')
 
   | And(True,e) -> (e,state)
   | And(False,_) -> (False,state)
@@ -44,68 +38,65 @@ let rec trace1_expr state = function
   | Or(e1,e2) -> let (e1',state') = trace1_expr state e1 in (Or(e1',e2),state')
 
   | Add(Const(n1),Const(n2)) -> (Const(n1+n2),state)
-  | Add(Const(n1),e) -> let (e',state') = trace1_expr state e in (Add(Const(n1),e'),state')
+  | Add(Const(n1),e2) -> let (e2',state') = trace1_expr state e2 in (Add(Const(n1),e2'),state')
   | Add(e1,e2) -> let (e1',state') = trace1_expr state e1 in (Add(e1',e2),state')
-  
+
   | Sub(Const(n1),Const(n2)) -> (Const(n1-n2),state)
-  | Sub(Const(n1),e) -> let (e',state') = trace1_expr state e in (Sub(Const(n1),e'),state')
+  | Sub(Const(n1),e2) -> let (e2',state') = trace1_expr state e2 in (Sub(Const(n1),e2'),state')
   | Sub(e1,e2) -> let (e1',state') = trace1_expr state e1 in (Sub(e1',e2),state')
 
   | Mul(Const(n1),Const(n2)) -> (Const(n1*n2),state)
-  | Mul(Const(n1),e) -> let (e',state') = trace1_expr state e in (Mul(Const(n1),e'),state')
+  | Mul(Const(n1),e2) -> let (e2',state') = trace1_expr state e2 in (Mul(Const(n1),e2'),state')
   | Mul(e1,e2) -> let (e1',state') = trace1_expr state e1 in (Mul(e1',e2),state')
 
   | Eq(Const(n1),Const(n2)) -> if n1=n2 then (True,state) else (False,state)
-  | Eq(Const(n1),e) -> let (e',state') = trace1_expr state e in (Eq(Const(n1),e'),state')
+  | Eq(Const(n1),e2) -> let (e2',state') = trace1_expr state e2 in (Eq(Const(n1),e2'),state')
   | Eq(e1,e2) -> let (e1',state') = trace1_expr state e1 in (Eq(e1',e2),state')
 
   | Leq(Const(n1),Const(n2)) -> if n1<=n2 then (True,state) else (False,state)
-  | Leq(Const(n1),e) -> let (e',state') = trace1_expr state e in (Leq(Const(n1),e'),state')
+  | Leq(Const(n1),e2) -> let (e2',state') = trace1_expr state e2 in (Leq(Const(n1),e2'),state')
   | Leq(e1,e2) -> let (e1',state') = trace1_expr state e1 in (Leq(e1',e2),state')
 
-  | Call(f,Const(n)) -> ( match (topenv state) f with 
-      IFun(x,cmd,expr) -> 
-        let loc = getloc state in
-        let env' = bind_env (topenv state) x (IVar loc) in (* CHECK bind_env, potrebbe essere chiamata in modo errato *)
-        let mem' = bind_mem (getmem state) loc n in      (* CHECK *)
-        let state' = make_state (env'::getenv state) mem' (loc+1) in (* make state *)
-        (CallExec(cmd,expr),state')
-      | _ -> raise (TypeError "Stai chiamando una funzione non esistente"))
-  | Call(f,expr) -> let (expr',state') = trace1_expr state expr in (Call(f,expr'),state')
-  
-  | CallExec(cmd,expr) -> (match trace1_cmd (Cmd(cmd,state)) with
-      St state' -> (CallRet(expr),state')
-    | Cmd(cmd',state') -> (CallExec(cmd',expr),state'))
+  | Call(f,Const(n)) -> (match (topenv state) f with
+        IFun(x,c,er) -> 
+        let l = getloc state in
+        let env' = bind (topenv state) x (IVar l) in
+        let mem' = bind (getmem state) l n in
+        let state' = (env'::(getenv state), mem', l+1) in
+        (CallExec(c,er),state')
+      | _ -> raise (TypeError "Call of a non-function"))
+  | Call(f,e) -> let (e',state') = trace1_expr state e in (Call(f,e'),state')
 
-  | CallRet(Const(n)) ->  let state' = make_state (popenv state) (getmem state) (getloc state) in (Const(n), state')
+  | CallExec(c,e) -> (match trace1_cmd (Cmd(c,state)) with
+    | St state' -> (CallRet(e),state')
+    | Cmd(c',state') -> (CallExec(c',e),state'))
+
+  | CallRet(Const(n)) -> let state' = (popenv state, getmem state, getloc state) in (Const(n),state')
   | CallRet(e) -> let (e',state') = trace1_expr state e in (CallRet(e'),state')
-  
+
   | _ -> raise NoRuleApplies
 
-
 and trace1_cmd = function
-    St _ -> raise NoRuleApplies
+  | St _ -> raise NoRuleApplies
 
-  | Cmd(cmd,state) ->  match cmd with 
-    | Skip -> St state 
+  | Cmd(c,state) -> match c with
+    | Skip -> St state
 
-    | Assign(x,Const(n)) -> ( match topenv state x with 
-      | IVar loc -> let new_state = make_state (getenv state) (bind_mem (getmem state) loc n) (getloc state) in St new_state (* CHECK *)
-      | _ -> failwith " todo error message ")
-    | Assign(x,expr) -> let (expr',state') = trace1_expr state expr in Cmd(Assign(x,expr'),state')
+    | Assign(x,Const(n)) -> (match topenv state x with
+      | IVar l -> St (getenv state, bind (getmem state) l n, getloc state)
+      | _ -> failwith "improve err msg")
+    | Assign(x,e) -> let (e',state') = trace1_expr state e in Cmd(Assign(x,e'),state') 
 
-    | Seq(c1,c2) -> ( match trace1_cmd (Cmd(c1,state)) with 
-      | St state1 -> Cmd(c2,state1)
-      | Cmd(c1',state1) -> Cmd(Seq(c1',c2),state1))
-    
+    | Seq(c1,c2) -> (match trace1_cmd (Cmd(c1,state)) with
+        | St st1 -> Cmd(c2,st1)
+        | Cmd(c1',st1) -> Cmd(Seq(c1',c2),st1))
+
     | If(True,c1,_) -> Cmd(c1,state)
     | If(False,_,c2) -> Cmd(c2,state)
-    | If(expr,c1,c2) -> let (e',state') = trace1_expr state expr in Cmd(If(e',c1,c2),state')
+    | If(e,c1,c2) -> let (e',state') = trace1_expr state e in Cmd(If(e',c1,c2),state')
 
-    | While(expr,cmd) -> Cmd(If(expr,Seq(cmd,While(expr,cmd)),Skip),state)
+    | While(e,c) -> Cmd(If(e,Seq(c,While(e,c)),Skip),state)
 
-
-(* CHECK TUTTA *)
 let rec sem_decl (e,l) = function
   | EmptyDecl -> (e,l)
   | IntVar(x) ->  let e' = bind e x (IVar l) in (e',l+1)
@@ -113,16 +104,20 @@ let rec sem_decl (e,l) = function
   | DSeq(d1,d2) -> let (e',l') = sem_decl (e,l) d1 in sem_decl (e',l') d2
 
 
-(* CHECK TUTTA *)
 let rec trace_rec n t =
   if n<=0 then [t]
   else try
-    let t' = trace1_cmd t
-    in t::(trace_rec (n-1) t')
-  with NoRuleApplies -> [t]  
+      let t' = trace1_cmd t
+      in t::(trace_rec (n-1) t')
+    with NoRuleApplies -> [t]
 
-(* CHECK TUTTA *)
-let trace n (Prog(d, c)) =
-  let (e, l) = sem_decl (bottom_env, 0) d in
-  let initial_state = make_state [e] bottom_mem l in
-  trace_rec n (Cmd(c, initial_state))
+
+(**********************************************************************
+ trace : int -> prog -> conf list
+
+ Usage: trace n c performs n steps of the small-step semantics
+ **********************************************************************)
+
+let trace n (Prog(d,c)) =
+  let (e,l) = sem_decl (botenv,0) d
+  in trace_rec n (Cmd(c,([e],botmem,l)))

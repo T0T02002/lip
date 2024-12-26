@@ -37,7 +37,6 @@ rule read =
   | "do" { DO }
 
   | "int" { INT }
-  | "bool" { BOOL }
   | "fun" { FUN }
   | "return" { RETURN }
 

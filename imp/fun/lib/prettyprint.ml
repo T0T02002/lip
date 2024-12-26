@@ -1,6 +1,6 @@
 open Ast
 open Types
-
+    
 let string_of_val = function
   | n -> string_of_int n
 
@@ -27,8 +27,7 @@ and string_of_cmd = function
   | Seq(c1,c2) -> string_of_cmd c1 ^ "; " ^ string_of_cmd c2
   | If(e,c1,c2) -> "if " ^ string_of_expr e ^ " then " ^ string_of_cmd c1 ^ " else " ^ string_of_cmd c2
   | While(e,c) -> "while " ^ string_of_expr e ^ " do " ^ string_of_cmd c
-
-  (* MODIFIED *)
+          
 let rec string_of_decl = function
   | EmptyDecl -> ""
   | IntVar(x) -> "int " ^ x
@@ -38,7 +37,7 @@ let rec string_of_decl = function
 let string_of_env1 s x = match topenv s x with
   | IVar l -> string_of_int l ^ "/" ^ x
   | IFun(y,c,e) -> "fun(" ^ y ^ "){" ^ string_of_cmd c ^ "; return " ^ string_of_expr e ^ "}/" ^ x
-
+    
 let rec string_of_env s = function
     [] -> ""
   | [x] -> (try string_of_env1 s x with _ -> "")
@@ -60,7 +59,7 @@ let rec getlocs e = function
     | IVar l -> l::(getlocs e dom)
     | IFun(_,_,_) -> [])
     with _ -> getlocs e dom
-
+                   
 let string_of_state st dom =
   "[" ^ string_of_env st dom ^ "], " ^
   "[" ^ string_of_mem (getmem st,getloc st) ^ "]" ^ ", " ^
@@ -76,12 +75,12 @@ let rec vars_of_expr = function
   | Const _ -> []
   | Var x -> [x]
   | Not e -> vars_of_expr e
-  | And(e1,e2)
-  | Or(e1,e2)
+  | And(e1,e2) 
+  | Or(e1,e2) 
   | Add(e1,e2)
   | Sub(e1,e2)
-  | Mul(e1,e2)
-  | Eq(e1,e2)
+  | Mul(e1,e2)      
+  | Eq(e1,e2) 
   | Leq(e1,e2) -> union (vars_of_expr e1) (vars_of_expr e2)
   | Call(f,e) -> union [f] (vars_of_expr e)
   | CallExec(c,e) -> union (vars_of_cmd c) (vars_of_expr e)
@@ -94,12 +93,11 @@ and vars_of_cmd = function
   | If(e,c1,c2) -> union (vars_of_expr e) (union (vars_of_cmd c1) (vars_of_cmd c2))
   | While(e,c) -> union (vars_of_expr e) (vars_of_cmd c)
 
-  (* MODIFIED *)
 let rec vars_of_decl = function
-  EmptyDecl -> []
+    EmptyDecl -> []
   | IntVar(x) -> [x]
   | Fun(f,x,c,e) -> union [x;f] (union (vars_of_cmd c) (vars_of_expr e))
-  | DSeq(d1,d2) -> union (vars_of_decl d1) (vars_of_decl d2)     
+  | DSeq(d1,d2) -> union (vars_of_decl d1) (vars_of_decl d2)               
 
 let vars_of_prog (Prog(d,_)) = vars_of_decl d
 

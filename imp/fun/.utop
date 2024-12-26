@@ -1,0 +1,8 @@
+open Fun;;
+open FunLib;;
+open FunLib.Ast;;
+open FunLib.Types;;
+open FunLib.Lexer;;
+open FunLib.Parser;;
+open FunLib.Prettyprint;;
+open FunLib.Main;;
