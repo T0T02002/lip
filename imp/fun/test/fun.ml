@@ -2,7 +2,6 @@ open FunLib.Types
 open FunLib.Prettyprint
 open FunLib.Main
 
-(* Open Fun;; Open Funlib;; Open Main;; Open Parser;; Open Lexer;; Open Ast;; Open *)
 
 (**********************************************************************
  trace test : (command, n_steps, location, expected value after n_steps)
@@ -15,7 +14,6 @@ let test_trace (cmd,n_steps,var,exp_val) =
   |> fun t -> match t with
     St s -> apply s var = exp_val
   | Cmd(_,_) -> failwith "program not terminated"
-
 
 let%test "test_trace1" = test_trace
   ("int x; x:=51", 2, "x", 51)
@@ -73,6 +71,8 @@ let%test "test_boss" = test_trace
         x := f(5)
     |}, 100, "x", 120)
 
+    
+let%test_unit "fact" = print_endline "TODO FACT"
 
 (* EOF *)
 let%test_unit _ =

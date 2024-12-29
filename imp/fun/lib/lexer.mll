@@ -1,15 +1,20 @@
+(* Ocamllex lexer *)
+(* Trasforma dei caratteri e li trasforma in token seguendo delle regole specifiche *)
+
 {
-open Parser
+  open Parser
+  exception LexError of string
+  let illegal c = raise (LexError (Printf.sprintf "[lexer] il carattere %c non è inseribile" c))  (* debug caratteri non consentiti nel lexer *)
 }
 
-let white = [' ' '\t' '\n']+                                  (* aggiunta l'andata a capo *)
-let const = ['0'-'9']|['1'-'9']['0'-'9']*                     (* CONST, numeri, non accetta '00' *)
-let ide = ['a'-'z' 'A'-'Z' '_']['a'-'z' 'A'-'Z' '0'-'9''_']*  (* ID, 'a','Aa_1' accettate *)
+let white = [' ' '\t' '\n']+                                  
+let const = ['0'-'9']|['1'-'9']['0'-'9']*                  (* numeri: non accetta '00' *)
+let ide = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*  (* identificativi: 'a','Aa_1' accettate *)
 
 
-rule read =
-  parse
-  | white { read lexbuf }  
+rule next_token = parse
+
+  | white { next_token lexbuf }   (* ignora e va avanti *)
 
   | "true" { TRUE }
   | "false" { FALSE }
@@ -24,7 +29,7 @@ rule read =
   | "+" { ADD }
   | "-" { SUB }
   | "*" { MUL }
-  | "=" { EQ } (* uguaglianza *)
+  | "=" { EQ }   (* uguaglianza *)
   | "<=" { LEQ }
 
   | ";" { SEQ }
@@ -40,9 +45,9 @@ rule read =
   | "fun" { FUN }
   | "return" { RETURN }
 
-  (* precedenza bassa perché altrimenti "if" viene letto come VAR e non come IF, *)
-  (* se ha problemi, scambia const con var *)
-  | const { CONST (Lexing.lexeme lexbuf) }
-  | ide { IDE (Lexing.lexeme lexbuf) }
-  
+  (* precedenza bassa perché altrimenti i costrutti (if,while) vengono letti come nomi di variabile *)
+  | const { CONST (Lexing.lexeme lexbuf) }  (* restituisce il valore testuale convertito come CONST string *)
+  | ide { IDE (Lexing.lexeme lexbuf) }      (* restituisce il valore testuale convertito come IDE string *)
   | eof { EOF }
+
+  | _ as c { illegal c }    (* eccezioni non consentite *)

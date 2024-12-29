@@ -42,3 +42,13 @@ open FunLib.Prettyprint;;
 open FunLib.Main;;  
 
 parse "int x; x:=51";;
+
+
+# install nice_parser
+cd fun
+opam install nice_parser
+# aggiungi nice_parser a dune nella dichiarazione delle librerie
+
+# aggiunti .ocamlformat e .ocamlinit
+
+#todo test approfonditi sui file fun1, ...
