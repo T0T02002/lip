@@ -3,8 +3,6 @@
 
 {
   open Parser
-  exception LexError of string
-  let illegal c = raise (LexError (Printf.sprintf "[lexer] il carattere %c non è inseribile" c))  (* debug caratteri non consentiti nel lexer *)
 }
 
 let white = [' ' '\t' '\n']+                                  
@@ -49,5 +47,3 @@ rule next_token = parse
   | const { CONST (Lexing.lexeme lexbuf) }  (* restituisce il valore testuale convertito come CONST string *)
   | ide { IDE (Lexing.lexeme lexbuf) }      (* restituisce il valore testuale convertito come IDE string *)
   | eof { EOF }
-
-  | _ as c { illegal c }    (* eccezioni non consentite *)
